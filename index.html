@@ -120,25 +120,35 @@
     </div>
 
     <script>
-        const baseURL = "https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m";
-        const totalImages = 29;
-        const imageElement = document.getElementById("base");
-        let currentIndex = 1;
+  const baseURL = "https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m";
+const totalImages = 29;
+const imageElement = document.getElementById("base");
+let currentIndex = 1;
 
-        function getImageUrl(index) {
-            const indexStr = index.toString().padStart(3, '0');
-            return `${baseURL}/q${indexStr}.gif`;
-        }
+// Preload all images
+const imagePreloads = [];
+for (let i = 1; i <= totalImages; i++) {
+  const imageUrl = getImageUrl(i);
+  const img = new Image();
+  img.src = imageUrl;
+  imagePreloads.push(img);
+}
 
-        function updateImage() {
-            const imageUrl = getImageUrl(currentIndex);
-            imageElement.src = imageUrl;
-            currentIndex = (currentIndex % totalImages) + 1;
-        }
+function getImageUrl(index) {
+  const indexStr = index.toString().padStart(3, '0');
+  return `${baseURL}/q${indexStr}.gif`;
+}
 
-        updateImage();
+function updateImage() {
+  const imageUrl = getImageUrl(currentIndex);
+  imageElement.src = imageUrl;
+  currentIndex = (currentIndex % totalImages) + 1;
+}
 
-        const interval = setInterval(updateImage, 400);
+updateImage();
+
+const interval = setInterval(updateImage, 400);
+
 
        // Define the URL of the Google Apps Script endpoint
        var scriptUrl = "https://script.google.com/macros/s/AKfycbw0lcV1tWc1jyMqel9Ti9p8v_w4BdRVI9PlKBu1V1focCwYpLp3qYVNPAJ6vO41C3xvTw/exec";
