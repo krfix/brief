@@ -125,12 +125,6 @@
         <div class="column">
           <!-- METAR Information Table -->
           <table id="populatedTable">
-            <thead>
-                <tr>
-                    <th>Airport</th>
-                    <th>METAR Information</th>
-                </tr>
-            </thead>
             <tbody>
                 <!-- Table rows will be inserted here -->
             </tbody>
@@ -141,6 +135,24 @@
     </div>
 
     <script>
+
+function getScriptUrl() {
+  var scriptUrl;
+  var now = new Date();
+  var currentHour = now.getHours();
+  var currentMinutes = now.getMinutes();
+
+  if (currentMinutes >= 0 && currentMinutes < 31) {
+    // It is between HH:00 and HH:31
+    scriptUrl = "https://script.google.com/macros/s/AKfycbw0lcV1tWc1jyMqel9Ti9p8v_w4BdRVI9PlKBu1V1focCwYpLp3qYVNPAJ6vO41C3xvTw/exec";
+  } else {
+    // It is between HH:31 and HH:00
+    scriptUrl = "https://script.google.com/macros/s/AKfycbzeWa7EVtoYcwhzCoX7ISdYINwUgxhA04_-_TdKgzTfVgcgMBqvA0clYIjnjhtU_IsqVQ/exec";
+  }
+
+  return scriptUrl;
+}
+
   const baseURL = "https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m";
 const totalImages = 29;
 const imageElement = document.getElementById("base");
@@ -171,12 +183,13 @@ updateImage();
 const interval = setInterval(updateImage, 400);
 
 
-       // Define the URL of the Google Apps Script endpoint
-       var scriptUrl = "https://script.google.com/macros/s/AKfycbw0lcV1tWc1jyMqel9Ti9p8v_w4BdRVI9PlKBu1V1focCwYpLp3qYVNPAJ6vO41C3xvTw/exec";
+      // Define the URL of the Google Apps Script endpoint
+var scriptUrl = getScriptUrl();
+console.log("Using script URL: " + scriptUrl);
 
-        // Function to fetch METAR data and populate the new table
-        async function fetchAndPopulateTable() {
-        try {
+// Function to fetch METAR data and populate the new table
+async function fetchAndPopulateTable() {
+    try {
         // Fetch data from the Google Apps Script endpoint
         var response = await fetch(scriptUrl);
         if (!response.ok) {
@@ -186,14 +199,27 @@ const interval = setInterval(updateImage, 400);
         // Parse the response as text
         var metarData = await response.text();
 
-        // Get the table body element
-        var tableBody = document.querySelector("#populatedTable tbody");
+        // Get the table element and table body
+        var table = document.querySelector("#populatedTable");
+        var tableBody = table.querySelector("tbody");
 
         // Remove any existing rows in the table
         tableBody.innerHTML = '';
 
         // Split METAR data into individual entries using the <tr> tags
         var metarEntries = metarData.split('<tr>');
+
+        metarEntries.shift();
+
+       // Create table header
+        var thead = table.createTHead(); // Use createTHead directly on the existing table
+        var headerRow = thead.insertRow(); // Create a row within the table header
+        var headerCell1 = document.createElement("th");
+        headerCell1.textContent = "Airport";
+        var headerCell2 = document.createElement("th");
+        headerCell2.textContent = "METAR Information";
+        headerRow.appendChild(headerCell1);
+        headerRow.appendChild(headerCell2);
 
         // Iterate through METAR entries and populate the table
         metarEntries.forEach(function (metarEntry) {
@@ -223,41 +249,7 @@ const interval = setInterval(updateImage, 400);
 // Call the function to fetch and populate the new table
 fetchAndPopulateTable();
 
-function updateLastRefreshTime() {
-    const lastRefreshTimeElement = document.getElementById("last-refresh-time");
-    const now = new Date();
 
-    const hoursUTC = now.getUTCHours().toString().padStart(2, '0');
-    const minutesUTC = now.getUTCMinutes().toString().padStart(2, '0');
-    const secondsUTC = now.getUTCSeconds().toString().padStart(2, '0');
-    
-    const lastRefreshTime = `${hoursUTC}:${minutesUTC}:${secondsUTC} UTC`;
-
-    lastRefreshTimeElement.textContent = "Last Refresh: " + lastRefreshTime;
-}
-
-// Capture the initial "Last Refresh" time when the page loads
-updateLastRefreshTime();
-
-// Function to update the UTC time
-function updateUTCTime() {
-    const utcTimeElement = document.getElementById("utc-time-display");
-    const now = new Date();
-
-    const hoursUTC = now.getUTCHours().toString().padStart(2, '0');
-    const minutesUTC = now.getUTCMinutes().toString().padStart(2, '0');
-    const secondsUTC = now.getUTCSeconds().toString().padStart(2, '0');
-    
-    const utcTimeString = `${hoursUTC}:${minutesUTC}:${secondsUTC} UTC`;
-    
-    utcTimeElement.textContent = utcTimeString;
-}
-
-// Call the function to update the UTC time immediately
-updateUTCTime();
-
-// Update the UTC time every second
-setInterval(updateUTCTime, 1000);
 
 
  // Define the URL of the Google Apps Script endpoint
@@ -342,6 +334,55 @@ async function fetchDataAndDisplaytaf() {
 
 // Call the function to fetch and display the data
 fetchDataAndDisplaytaf();
+
+function updateLastRefreshTime() {
+    const lastRefreshTimeElement = document.getElementById("last-refresh-time");
+    const now = new Date();
+
+    const hoursUTC = now.getUTCHours().toString().padStart(2, '0');
+    const minutesUTC = now.getUTCMinutes().toString().padStart(2, '0');
+    const secondsUTC = now.getUTCSeconds().toString().padStart(2, '0');
+    
+    const lastRefreshTime = `${hoursUTC}:${minutesUTC}:${secondsUTC} UTC`;
+
+    lastRefreshTimeElement.textContent = "Last Refresh: " + lastRefreshTime;
+}
+
+// Capture the initial "Last Refresh" time when the page loads
+updateLastRefreshTime();
+
+// Function to update the UTC time
+function updateUTCTime() {
+    const utcTimeElement = document.getElementById("utc-time-display");
+    const now = new Date();
+
+    const hoursUTC = now.getUTCHours().toString().padStart(2, '0');
+    const minutesUTC = now.getUTCMinutes().toString().padStart(2, '0');
+    const secondsUTC = now.getUTCSeconds().toString().padStart(2, '0');
+    
+    const utcTimeString = `${hoursUTC}:${minutesUTC}:${secondsUTC} UTC`;
+    
+    utcTimeElement.textContent = utcTimeString;
+}
+
+// Call the function to update the UTC time immediately
+updateUTCTime();
+
+// Update the UTC time every second
+setInterval(updateUTCTime, 1000);
+
+function reloadPage() {
+            // Get the current time
+            const now = new Date();
+            
+            // Check if the current time's minutes are one of the specified values
+            if ([1, 11, 21, 31, 41, 51].includes(now.getMinutes())) {
+                location.reload();
+            }
+        }
+
+        // Set an interval to check every minute
+        setInterval(reloadPage, 60000); // 60000 milliseconds = 1 minute
 
     </script>
 </body>
