@@ -81,15 +81,13 @@
             width: 100%;
             text-align: left;
             padding: 0px 0px;
-            margin-top: 10px; /* Add margin to create space between rows */
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Column 1: Rows 1 and 2 -->
         <div class="column">
-            <!-- Row 1: Image container -->
             <div class="row">
                 <div class="image-container">
                     <div class="image-div" style="background-image: url('https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m/rad_geog_m.gif');">
@@ -101,11 +99,8 @@
                     <div class="image-div" style="background-image: url('https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m/rad_kontur_m.gif');">
                         <img id="base" src="">
                     </div>
-                    
                 </div>
             </div>
-
-            <!-- Row 2: Sat24 container -->
             <div class="row">
                 <div class="sat24-container">
                     <a href='http://en.sat24.com/en' target='sat24'>
@@ -113,114 +108,88 @@
                     </a>
                 </div>
             </div>
-
             <div class="row">
                 <div class="significant-container">
                         <img id="image3" src="https://awiacja.imgw.pl/dane_cbpl/SWC_PL_EPWA.GIF" style="width: 585px; height: auto;">
                 </div>
                 <div id="utc-time">
                     <span id="utc-time-display"></span>
-                  
                 </div>
                 <div>
                     <span id="last-refresh-time">Last Refresh: Loading...</span>
                 </div>
             </div>
         </div>
-
-        <!-- Column 2: METAR Information -->
         <div class="column">
-          <!-- METAR Information Table -->
           <table id="populatedTable">
             <tbody>
-                <!-- Table rows will be inserted here -->
             </tbody>
         </table>
         <div id="tableContainer"></div>
         </div>
-
     </div>
-
     <script>
+        function getScriptUrl() {
+        var scriptUrl;
+        var now = new Date();
+        var currentHour = now.getHours();
+        var currentMinutes = now.getMinutes();
+        if (currentMinutes >= 0 && currentMinutes < 31) {
+            scriptUrl = "https://script.google.com/macros/s/AKfycbw0lcV1tWc1jyMqel9Ti9p8v_w4BdRVI9PlKBu1V1focCwYpLp3qYVNPAJ6vO41C3xvTw/exec";
+        } else {
+            scriptUrl = "https://script.google.com/macros/s/AKfycbzeWa7EVtoYcwhzCoX7ISdYINwUgxhA04_-_TdKgzTfVgcgMBqvA0clYIjnjhtU_IsqVQ/exec";
+        }
+        return scriptUrl;
+        }
+        const baseURL = "https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m";
+        const totalImages = 29;
+        const imageElement = document.getElementById("base");
+        let currentIndex = 1;
 
-function getScriptUrl() {
-  var scriptUrl;
-  var now = new Date();
-  var currentHour = now.getHours();
-  var currentMinutes = now.getMinutes();
+        const imagePreloads = [];
+        for (let i = 1; i <= totalImages; i++) {
+        const imageUrl = getImageUrl(i);
+        const img = new Image();
+        img.src = imageUrl;
+        imagePreloads.push(img);
+        }
 
-  if (currentMinutes >= 0 && currentMinutes < 31) {
-    // It is between HH:00 and HH:31
-    scriptUrl = "https://script.google.com/macros/s/AKfycbw0lcV1tWc1jyMqel9Ti9p8v_w4BdRVI9PlKBu1V1focCwYpLp3qYVNPAJ6vO41C3xvTw/exec";
-  } else {
-    // It is between HH:31 and HH:00
-    scriptUrl = "https://script.google.com/macros/s/AKfycbzeWa7EVtoYcwhzCoX7ISdYINwUgxhA04_-_TdKgzTfVgcgMBqvA0clYIjnjhtU_IsqVQ/exec";
-  }
+        function getImageUrl(index) {
+        const indexStr = index.toString().padStart(3, '0');
+        return `${baseURL}/q${indexStr}.gif`;
+        }
 
-  return scriptUrl;
-}
+        function updateImage() {
+        const imageUrl = getImageUrl(currentIndex);
+        imageElement.src = imageUrl;
+        currentIndex = (currentIndex % totalImages) + 1;
+        }
 
-  const baseURL = "https://awiacja.imgw.pl/mapa-burz-rad/_burzrad_p3m";
-const totalImages = 29;
-const imageElement = document.getElementById("base");
-let currentIndex = 1;
+        updateImage();
 
-// Preload all images
-const imagePreloads = [];
-for (let i = 1; i <= totalImages; i++) {
-  const imageUrl = getImageUrl(i);
-  const img = new Image();
-  img.src = imageUrl;
-  imagePreloads.push(img);
-}
+        const interval = setInterval(updateImage, 400);
 
-function getImageUrl(index) {
-  const indexStr = index.toString().padStart(3, '0');
-  return `${baseURL}/q${indexStr}.gif`;
-}
+        var scriptUrl = getScriptUrl();
+        console.log("Using script URL: " + scriptUrl);
 
-function updateImage() {
-  const imageUrl = getImageUrl(currentIndex);
-  imageElement.src = imageUrl;
-  currentIndex = (currentIndex % totalImages) + 1;
-}
-
-updateImage();
-
-const interval = setInterval(updateImage, 400);
-
-
-      // Define the URL of the Google Apps Script endpoint
-var scriptUrl = getScriptUrl();
-console.log("Using script URL: " + scriptUrl);
-
-// Function to fetch METAR data and populate the new table
 async function fetchAndPopulateTable() {
     try {
-        // Fetch data from the Google Apps Script endpoint
         var response = await fetch(scriptUrl);
         if (!response.ok) {
             throw new Error("Fetch error: " + response.status + " - " + response.statusText);
         }
-
-        // Parse the response as text
         var metarData = await response.text();
-
-        // Get the table element and table body
         var table = document.querySelector("#populatedTable");
         var tableBody = table.querySelector("tbody");
 
-        // Remove any existing rows in the table
         tableBody.innerHTML = '';
 
-        // Split METAR data into individual entries using the <tr> tags
         var metarEntries = metarData.split('<tr>');
 
         metarEntries.shift();
 
-       // Create table header
-        var thead = table.createTHead(); // Use createTHead directly on the existing table
-        var headerRow = thead.insertRow(); // Create a row within the table header
+        var thead = table.createTHead(); 
+        var headerRow = thead.insertRow();
         var headerCell1 = document.createElement("th");
         headerCell1.textContent = "Airport";
         var headerCell2 = document.createElement("th");
@@ -228,20 +197,15 @@ async function fetchAndPopulateTable() {
         headerRow.appendChild(headerCell1);
         headerRow.appendChild(headerCell2);
 
-        // Iterate through METAR entries and populate the table
         metarEntries.forEach(function (metarEntry) {
-            // Extract Airport code from the entry using regular expression
             var airportCodeMatch = metarEntry.match(/\?aport=([A-Z]+)/);
             var airportCode = airportCodeMatch ? airportCodeMatch[1] : '';
 
-            // Extract METAR Information (text between </span> and <br>)
             var metarInfoMatch = metarEntry.match(/<\/span>(.*?)<br/);
             var metarInfoText = metarInfoMatch ? metarInfoMatch[1].trim() : '';
 
-            // Create a new row
             var row = tableBody.insertRow();
 
-            // Create table cells and populate them with Airport and METAR Information
             var airportCell = row.insertCell(0);
             airportCell.textContent = airportCode;
 
@@ -253,35 +217,21 @@ async function fetchAndPopulateTable() {
     }
 }
 
-// Call the function to fetch and populate the new table
 fetchAndPopulateTable();
 
-
-
-
- // Define the URL of the Google Apps Script endpoint
  var scriptUrltaf = "https://script.google.com/macros/s/AKfycbwJJzXas9lDHSk1s_zQP0qQpjXYqucaSYmN3xCX_CkmW-N6Qutbw5PJ2me7dEc3MTdoQg/exec";
 
-// Function to fetch and display data
 async function fetchDataAndDisplaytaf() {
     try {
-        // Fetch data from the Google Apps Script endpoint
         var response = await fetch(scriptUrltaf);
         if (!response.ok) {
             throw new Error("Fetch error: " + response.status + " - " + response.statusText);
         }
 
-        // Parse the response as text (assuming it's plain text or HTML)
         var responseData = await response.text();
-
-        // Split the responseData into individual TAF entries using the delimiter "<br><br>"
         var tafEntries = responseData.split("<br><br>");
-
-        // Create a table to display the TAF entries
         var table = document.createElement("table");
         table.id = "populatedTable";
-
-        // Create table header
         var thead = document.createElement("thead");
         var headerRow = document.createElement("tr");
         var headerCell1 = document.createElement("th");
@@ -293,45 +243,33 @@ async function fetchDataAndDisplaytaf() {
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
-        // Create table body
         var tbody = document.createElement("tbody");
 
-        // Iterate through TAF entries and populate the table
         tafEntries.forEach(function (tafEntry) {
             var entryDiv = document.createElement("div");
             entryDiv.innerHTML = tafEntry;
+            var airportElement = entryDiv.querySelector("span.redfont");
+            var airportCode = airportElement.textContent;
 
-            // Extract Airport code from the entry
-            // Assuming entryDiv represents the <div> containing the HTML content
-            var airportElement = entryDiv.querySelector("span.redfont"); // Select the <span> element with class "redfont"
-            var airportCode = airportElement.textContent; // Get the text content of the <span> element
-
-            // Extract TAF Information
             var tafInfoText = entryDiv.textContent.replace(airportCode, '').trim();
 
-            // Create a new row
             var row = document.createElement("tr");
 
-            // Create table cells and populate them with Airport and TAF Information
             var airportCell = document.createElement("td");
             airportCell.textContent = airportCode;
 
             var tafInfoCell = document.createElement("td");
             tafInfoCell.textContent = tafInfoText;
 
-            // Append cells to the row and row to the table body
             row.appendChild(airportCell);
             row.appendChild(tafInfoCell);
             tbody.appendChild(row);
         });
 
-        // Append the table body to the table
         table.appendChild(tbody);
 
-        // Get the container div where you want to paste the table
         var tableContainer = document.getElementById("tableContainer");
 
-        // Append the populated table to the container
         tableContainer.innerHTML = '';
         tableContainer.appendChild(table);
     } catch (error) {
@@ -339,7 +277,6 @@ async function fetchDataAndDisplaytaf() {
     }
 }
 
-// Call the function to fetch and display the data
 fetchDataAndDisplaytaf();
 
 function updateLastRefreshTime() {
@@ -355,10 +292,8 @@ function updateLastRefreshTime() {
     lastRefreshTimeElement.textContent = "Last Refresh: " + lastRefreshTime;
 }
 
-// Capture the initial "Last Refresh" time when the page loads
 updateLastRefreshTime();
 
-// Function to update the UTC time
 function updateUTCTime() {
     const utcTimeElement = document.getElementById("utc-time-display");
     const now = new Date();
@@ -372,24 +307,19 @@ function updateUTCTime() {
     utcTimeElement.textContent = utcTimeString;
 }
 
-// Call the function to update the UTC time immediately
 updateUTCTime();
 
-// Update the UTC time every second
 setInterval(updateUTCTime, 1000);
 
 function reloadPage() {
-            // Get the current time
             const now = new Date();
             
-            // Check if the current time's minutes are one of the specified values
             if ([1, 11, 21, 31, 41, 51].includes(now.getMinutes())) {
                 location.reload();
             }
         }
 
-        // Set an interval to check every minute
-        setInterval(reloadPage, 60000); // 60000 milliseconds = 1 minute
+        setInterval(reloadPage, 60000); 
 
     </script>
 </body>
