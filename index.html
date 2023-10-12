@@ -112,7 +112,7 @@
                         <img id="image3" src="https://awiacja.imgw.pl/dane_cbpl/SWC_PL_EPWA.GIF" style="width: 585px; height: auto;">
                 </div>
                 <div id="utc-time">
-                    <span id="utc-time-display"></span>
+                    <span id="utc-time-display">UTC Time: </span>
                   
                 </div>
                 <div>
@@ -238,23 +238,6 @@ function updateLastRefreshTime() {
 
 // Capture the initial "Last Refresh" time when the page loads
 updateLastRefreshTime();
-
-// Function to fetch METAR data and populate the new table
-async function fetchAndPopulateTable() {
-    try {
-        // Fetch data from the Google Apps Script endpoint
-
-        // ... Your existing fetch code ...
-
-        // After successfully fetching data, update the "Last Refresh" time
-        updateLastRefreshTime();
-    } catch (error) {
-        console.error("Error fetching and populating data:", error);
-    }
-}
-
-// Call the function to fetch and populate the new table
-fetchAndPopulateTable();
 
 // Function to update the UTC time
 function updateUTCTime() {
