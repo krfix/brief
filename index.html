@@ -63,6 +63,7 @@
             height: 430px;
             background-repeat: no-repeat;
             position: relative;
+            overflow: hidden;
         }
         .image-div {
             width: 100%;
@@ -78,10 +79,15 @@
             display: block;
         }
         .sat24-container {
-            width: 100%;
-            text-align: left;
-            padding: 0px 0px;
-            margin-top: 10px;
+            width: 585px; /* Adjust to match your iframe width */
+            height: 555px; /* Original height minus 50px */
+            overflow: hidden;
+            position: relative;
+        }
+        .sat24-container iframe {
+            position: absolute;
+            top: -30px; /* Shifts the iframe up by 50px */
+            left: 0;
         }
     </style>
 </head>
@@ -103,9 +109,8 @@
             </div>
             <div class="row">
                 <div class="sat24-container">
-                    <a href='http://en.sat24.com/en' target='sat24'>
-                        <img src='https://api.sat24.com/animated/PL/visual/1/Central%20European%20Standard%20Time/3936406' width="585" height="426">
-                    </a>
+                    <iframe sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" src="https://widgets.meteox.com/en-GB/widgets/radar/country/pl/satellite?z=6" style="width:585px!important;max-width:585px!important;max-height:585px!important;height:585px
+                    !important;padding:0px;border:none!important;box-sizing:border-box!important;" scrolling="no" frameborder="0"></iframe>
                 </div>
             </div>
             <div class="row">
@@ -221,7 +226,7 @@ fetchAndPopulateTable();
 
  var scriptUrltaf = "https://script.google.com/macros/s/AKfycbwJJzXas9lDHSk1s_zQP0qQpjXYqucaSYmN3xCX_CkmW-N6Qutbw5PJ2me7dEc3MTdoQg/exec";
 
-async function fetchDataAndDisplaytaf() {
+ async function fetchDataAndDisplaytaf() {
     try {
         var response = await fetch(scriptUrltaf);
         if (!response.ok) {
@@ -276,6 +281,7 @@ async function fetchDataAndDisplaytaf() {
         console.error("Error fetching and displaying data:", error);
     }
 }
+
 
 fetchDataAndDisplaytaf();
 
